@@ -1,19 +1,22 @@
-from pydantic import BaseModel
+from datetime import datetime
+from pydantic import BaseModel, EmailStr, Field, NonNegativeInt, StrictBool
+
+from type_definitions.auth_types import SubscriptionTier, UserRole
 
 class UserDTO(BaseModel):
-    id: int
-    email: str
-    username: str
-    subscription_tier: str
-    role: str
-    is_banned: bool | None = None
-    created_at: str
+    id: NonNegativeInt
+    email: EmailStr
+    username: str = Field(min_length=3, max_length=32)
+    subscription_tier: SubscriptionTier
+    role: UserRole
+    is_banned: StrictBool | None = None
+    created_at: datetime
 
 class AuthCredentials(BaseModel):
     user: UserDTO
     token: str
 
 class AuthResponseDTO(BaseModel):
-    success: bool
+    success: StrictBool
     message: str
     data: AuthCredentials

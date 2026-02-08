@@ -1,12 +1,12 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, PositiveInt, StrictBool
 
 class Pagination(BaseModel):
-    page: int
-    limit: int
-    total: int
-    totalPages: int
+    page: PositiveInt
+    limit: PositiveInt
+    total: PositiveInt
+    totalPages: PositiveInt
 
 class ErrorResponse(BaseModel):
-    success: bool
+    success: StrictBool
     error: str
     message: str
