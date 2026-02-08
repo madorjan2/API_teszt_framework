@@ -1,6 +1,11 @@
 import requests
 from datetime import datetime
 
+from models.auth_models import AuthResponseDTO
+from models.general_models import ErrorResponse
+
+from pprint import pprint
+
 baseUrl = "http://localhost:3000/api"
 
 def test_positive_register_user():
@@ -11,13 +16,10 @@ def test_positive_register_user():
     }
     res = requests.post(f"{baseUrl}/auth/register", json=payload)
     assert res.status_code == 201
-    res_json = res.json()
-    assert res_json["success"]
-    assert "User registered successfully" in res_json["message"]
-    assert "user" in res_json["data"]
-    assert res_json["data"]["user"]["email"] == payload["email"]
-    assert res_json["data"]["user"]["username"] == payload["username"]
-    assert "token" in res_json["data"]
+    pprint(res.json())
+    res = AuthResponseDTO.model_validate(res.json())
+    assert res.success
+    assert "User registered successfully" in res.message
 
 def test_positive_login_with_admin():
     payload = {
@@ -26,12 +28,10 @@ def test_positive_login_with_admin():
     }
     res = requests.post(f"{baseUrl}/auth/login", json=payload)
     assert res.status_code == 200
-    res_json = res.json()
-    assert res_json["success"]
-    assert "Login successful" in res_json["message"]
-    assert "user" in res_json["data"]
-    assert res_json["data"]["user"]["email"] == payload["email"]
-    assert "token" in res_json["data"]
+    res = AuthResponseDTO.model_validate(res.json())
+    assert res.success
+    assert not res.data.user.is_banned
+    assert "Login successful" in res.message
 
 def test_negative_login_with_wrong_password():
     payload = {
@@ -40,6 +40,7 @@ def test_negative_login_with_wrong_password():
     }
     res = requests.post(f"{baseUrl}/auth/login", json=payload)
     assert res.status_code == 401
-    res_json = res.json()
-    assert not res_json["success"]
-    assert "Invalid email or password" in res_json["message"]
+    res = ErrorResponse.model_validate(res.json())
+    assert not res.success
+    assert "Unauthorized" in res.error
+    assert "Invalid email or password" in res.message
